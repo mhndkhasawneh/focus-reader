@@ -1,0 +1,5 @@
+node_modules/
+dist/
+.wxt/
+dist-e2e/
+test-results/

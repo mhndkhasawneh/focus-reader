@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Focus Reader settings</title>
+  <meta name="manifest.open_in_tab" content="true" />
+  <style>
+    :root { color-scheme: light dark; --fg: #1f2328; --bg: #fbfaf7; --muted: #6a737d; --line: #e3e1db; --accent: #2f6feb; }
+    @media (prefers-color-scheme: dark) { :root { --fg: #dfe3e8; --bg: #16181c; --muted: #9aa4b1; --line: #2c3036; --accent: #7cb7ff; } }
+    body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.5 system-ui, sans-serif; }
+    main { max-width: 560px; margin: 0 auto; padding: 40px 16px; }
+    h1 { font-size: 22px; margin: 0 0 4px; }
+    p.lead { color: var(--muted); margin: 0 0 28px; }
+    fieldset { border: 1px solid var(--line); border-radius: 10px; padding: 12px 16px 4px; margin: 0 0 20px; }
+    legend { font-weight: 600; padding: 0 6px; }
+    label { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; align-items: center; margin: 0 0 12px; }
+    label small { grid-column: 1 / -1; color: var(--muted); }
+    input[type=range] { width: 180px; accent-color: var(--accent); }
+    output { font-variant-numeric: tabular-nums; color: var(--muted); min-width: 64px; text-align: right; display: inline-block; }
+    kbd { border: 1px solid var(--line); border-radius: 4px; padding: 0 5px; font-size: 13px; }
+    ul.keys { columns: 2; padding-left: 18px; color: var(--muted); }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Focus Reader</h1>
+    <p class="lead">Two ways to read: <b>in-page focus</b> keeps you in the page (<kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>F</kbd>),
+      <b>reader view</b> opens a clean copy (<kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>R</kbd>). Changes apply live.</p>
+    <form id="f">
+      <fieldset>
+        <legend>Modes</legend>
+        <label>Toolbar icon opens <select name="defaultMode"><option value="flow">In-page focus</option><option value="reader">Reader view</option></select></label>
+        <label>Show the focus toolbar when I select text on any site <input type="checkbox" name="selectionToolbar" />
+          <small>Chrome will ask for permission to read pages. Without it the toolbar works only after you click the icon on a page.</small></label>
+        <label>In-page focus steps by <select name="flowUnit"><option value="sentence">Sentence</option><option value="paragraph">Paragraph</option></select></label>
+      </fieldset>
+      <fieldset>
+        <legend>Text</legend>
+        <label>Font <select name="font"><option value="lexend">Lexend</option><option value="atkinson">Atkinson Hyperlegible</option><option value="serif">Serif</option><option value="original">Page font</option></select></label>
+        <label>Theme <select name="theme"><option value="paper">Paper</option><option value="sepia">Sepia</option><option value="mint">Mint</option><option value="slate">Slate</option><option value="night">Night</option></select></label>
+        <label>Size <span><input type="range" name="fontSize" min="14" max="40" step="1" /><output data-for="fontSize" data-unit="px"></output></span></label>
+        <label>Line height <span><input type="range" name="lineHeight" min="1.2" max="3" step="0.1" /><output data-for="lineHeight"></output></span></label>
+        <label>Letter spacing <span><input type="range" name="letterSpacing" min="0" max="3" step="0.1" /><output data-for="letterSpacing" data-unit="px"></output></span></label>
+        <label>Column width <span><input type="range" name="maxWidth" min="480" max="1100" step="20" /><output data-for="maxWidth" data-unit="px"></output></span></label>
+      </fieldset>
+      <fieldset>
+        <legend>Focus aids</legend>
+        <label>Bionic text <input type="checkbox" name="bionic" /><small>Bold the start of each word to guide your eye.</small></label>
+        <label>Bionic strength <span><input type="range" name="bionicRatio" min="0.2" max="0.8" step="0.05" /><output data-for="bionicRatio" data-unit="%"></output></span></label>
+        <label>Spotlight <input type="checkbox" name="spotlight" /><small>Dim every paragraph except the one you are reading.</small></label>
+        <label>Spotlight dimming <span><input type="range" name="spotlightDim" min="0.05" max="0.6" step="0.05" /><output data-for="spotlightDim" data-unit="%"></output></span></label>
+      </fieldset>
+      <fieldset>
+        <legend>Auto-pace</legend>
+        <label>Speed <span><input type="range" name="pace" min="1" max="100" step="1" /><output data-for="pace" data-unit="wpm"></output></span></label>
+        <label>Pause at punctuation <input type="checkbox" name="pauseAtPunctuation" /></label>
+      </fieldset>
+    </form>
+    <h2 style="font-size:16px">Keys (both modes)</h2>
+    <ul class="keys">
+      <li><kbd>Space</kbd> start / pause pacing</li>
+      <li><kbd>[</kbd> <kbd>]</kbd> slower / faster</li>
+      <li><kbd>↑</kbd> <kbd>↓</kbd> or <kbd>j</kbd> <kbd>k</kbd> previous / next</li>
+      <li><kbd>s</kbd> sentence / paragraph (in-page)</li>
+      <li><kbd>b</kbd> bionic, <kbd>f</kbd> spotlight</li>
+      <li><kbd>-</kbd> <kbd>+</kbd> text size</li>
+      <li><kbd>Esc</kbd> close</li>
+    </ul>
+  </main>
+  <script type="module" src="./main.ts"></script>
+</body>
+</html>

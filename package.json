@@ -1,0 +1,36 @@
+{
+  "name": "focus-reader",
+  "version": "0.2.0",
+  "private": true,
+  "description": "Chrome extension for focused reading: in-page sentence focus, reader view, bionic text and auto-pacing.",
+  "author": "Mohannad Khasawneh",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mhndkhasawneh/focus-reader.git"
+  },
+  "type": "module",
+  "scripts": {
+    "dev": "wxt",
+    "build": "wxt build",
+    "zip": "wxt zip",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "postinstall": "wxt prepare",
+    "test:e2e": "FOCUS_READER_E2E=1 wxt build && playwright test"
+  },
+  "dependencies": {
+    "@fontsource-variable/lexend": "5.3.0",
+    "@fontsource/atkinson-hyperlegible": "5.3.0",
+    "@mozilla/readability": "0.6.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.64.1",
+    "@types/chrome": "^0.3.6",
+    "@types/node": "^24.19.2",
+    "jsdom": "30.1.3",
+    "typescript": "5.9.3",
+    "vitest": "5.0.5",
+    "wxt": "0.21.4"
+  }
+}
