@@ -19,6 +19,19 @@ Long articles compete with sidebars, ads and autoplay for your attention. Readin
 usually solve this with an account, a subscription and permission to read every site you visit. Focus Reader
 does the same job locally: **no account, no server, no tracking**, and by default it only touches a page when you ask it to.
 
+## The story behind it
+
+I built the first version in an afternoon while trying out
+[REA (Reverse Engineer Anything)](https://github.com/morluto/rea), an open-source tool that lets AI agents
+analyze shipped software. I'd been using two reading extensions, [Nook](https://chromewebstore.google.com/detail/nook-focused-reading/nodkllppdponplhiigciielhobpnfdfm)
+and [Focus Ex](https://chromewebstore.google.com/detail/focus-ex/dlchhkpnfagokiecakphcgilhgdimkkg). I liked both,
+but both switch to a subscription after the trial. So I used REA to study how their features behave, wrote that
+behaviour down, and steered Claude Code through a fresh implementation, checking each step against tests.
+More in [my LinkedIn post](https://www.linkedin.com/feed/update/urn:li:activity:7518777210338664448/).
+
+> Focus Reader is an independent project. It is not affiliated with or endorsed by Nook or Focus Ex, and it
+> contains no code, text, fonts or other assets from either. It's a new implementation of similar reading techniques.
+
 ## Features
 
 ### Two ways to read
