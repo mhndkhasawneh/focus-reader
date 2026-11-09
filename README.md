@@ -9,12 +9,12 @@ one sentence at a time, or open a clean reader view. Bionic text and auto-pacing
 ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
+![The reading finger: a pointing-hand cursor glides along the text and the paragraph under it gets a soft background, switching between the Hand, Sleeve and Finger cursors and yellow, blue, green and pink](docs/demo.gif)
+
 | In-page focus | Reader view |
 |---|---|
 | ![In-page focus: the current sentence is highlighted and the rest of the page is dimmed](docs/screenshots/flow-sentence.png) | ![Reader view with clean typography](docs/screenshots/reader.png) |
 | ![Auto-pacing with bionic text on the original page](docs/screenshots/flow-pacing.png) | ![Reader view with bionic text, spotlight and pacing](docs/screenshots/reader-pacing.png) |
-
-![Reading finger: the paragraph under the mouse has a soft yellow background; the settings sidebar is open on the right](docs/screenshots/reading-finger-sidebar.png)
 
 ## Why
 
@@ -52,6 +52,8 @@ More in [my LinkedIn post](https://www.linkedin.com/feed/update/urn:li:activity:
 - **Focus this page** / **Reader view** buttons, the reading finger's cursor and colour, and the everyday reading
   settings: font, reader theme, text size, bionic text, spotlight and pace speed.
 - **All settings** opens the full Options page. Both stay in sync.
+
+![The settings sidebar next to an article, with a paragraph highlighted by the reading finger](docs/screenshots/reading-finger-sidebar.png)
 
 ### Reading finger (on by default, every page)
 - Like following the line with your finger: a soft, rounded background sits behind the paragraph under your mouse
@@ -163,6 +165,7 @@ lib/
   messages.ts           messages between pages, the sidebar and the background
   pacer.ts · bionic.ts · settings.ts · fonts.ts
 tests/                  unit tests (Vitest) and e2e/ (Playwright, real extension in Chromium)
+scripts/record-demo.mjs records docs/demo.gif with the real extension
 ```
 
 Built with [WXT](https://wxt.dev) and TypeScript (strict).
@@ -174,7 +177,12 @@ npm run dev        # Chrome with live reload
 npm run typecheck
 npm test           # unit tests
 npm run test:e2e   # builds a test variant and drives the real extension in Chromium
+npm run demo       # re-records docs/demo.gif (needs ffmpeg)
 ```
+
+Headless Chromium doesn't paint the mouse pointer into recordings, so the demo script draws it: it reads the cursor the
+extension set on the element under the mouse and shows that image at the pointer. Everything else in the GIF is the
+extension running as shipped.
 
 ## Changelog
 
@@ -183,6 +191,7 @@ npm run test:e2e   # builds a test variant and drives the real extension in Chro
   Finger and Normal cursors and a choice of colour.
 - Settings sidebar: opens with the toolbar icon, with live controls for the reading finger and everyday reading settings.
 - Double-click any text to bring up the focus toolbar, with no icon click first.
+- Demo GIF at the top of this README, recorded by `npm run demo`.
 - Permissions: site access on all http(s) pages, in place of the optional permission that the "toolbar on every
   selection" option used to ask for.
 

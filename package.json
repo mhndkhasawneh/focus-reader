@@ -17,7 +17,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "postinstall": "wxt prepare",
-    "test:e2e": "FOCUS_READER_E2E=1 wxt build && playwright test"
+    "test:e2e": "FOCUS_READER_E2E=1 wxt build && playwright test",
+    "demo": "FOCUS_READER_E2E=1 wxt build && node scripts/record-demo.mjs"
   },
   "dependencies": {
     "@fontsource-variable/lexend": "5.3.0",
