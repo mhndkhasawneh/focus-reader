@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Focus Reader</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #f6f4ef; --card: #fffdf8; --fg: #1f2328; --muted: #6b6f76; --line: #e6e1d6;
+      --accent: #2f6feb; --accent-fg: #fff; --chip: #efebe2; --knob: #fff;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root { --bg: #15171a; --card: #1e2125; --fg: #e4e6ea; --muted: #9aa1ab; --line: #2d3137;
+        --accent: #7cb7ff; --accent-fg: #0d1117; --chip: #272b31; --knob: #e4e6ea; }
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--fg); font: 14px/1.45 system-ui, sans-serif; }
+    main { padding: 16px 14px 28px; display: grid; gap: 14px; }
+    header h1 { font-size: 17px; margin: 0; letter-spacing: .2px; }
+    header p { margin: 2px 0 0; color: var(--muted); font-size: 12.5px; }
+
+    .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .actions button {
+      font: inherit; font-weight: 600; padding: 10px 8px; border-radius: 10px; cursor: pointer;
+      border: 1px solid var(--line); background: var(--card); color: var(--fg);
+    }
+    .actions button.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-fg); }
+    .actions button:hover { filter: brightness(1.05); }
+    .tip { margin: -4px 0 0; color: var(--muted); font-size: 12.5px; }
+
+    section { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 4px 14px 10px; }
+    section h2 { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 10px 0 4px; }
+    .row { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 42px; }
+    .row + .row, .row + .group, .group + .row { border-top: 1px solid var(--line); }
+    .row > span { flex: 1; }
+    .row small { display: block; color: var(--muted); font-size: 12px; }
+    .group { padding: 10px 0 6px; }
+    .group > span { display: block; margin-bottom: 8px; }
+
+    /* Switch */
+    input[type=checkbox] {
+      appearance: none; width: 38px; height: 22px; border-radius: 11px; background: var(--line);
+      position: relative; cursor: pointer; flex: none; transition: background .15s; margin: 0;
+    }
+    input[type=checkbox]::after {
+      content: ''; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%;
+      background: var(--knob); box-shadow: 0 1px 2px #0003; transition: transform .15s;
+    }
+    input[type=checkbox]:checked { background: var(--accent); }
+    input[type=checkbox]:checked::after { transform: translateX(16px); background: #fff; }
+    input:focus-visible, select:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+    /* Cursor picker: radio tiles with a picture */
+    .tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+    .tiles label { cursor: pointer; }
+    .tiles input { position: absolute; opacity: 0; pointer-events: none; }
+    .tiles .tile {
+      display: grid; place-items: center; gap: 4px; padding: 10px 4px 8px; border-radius: 10px;
+      border: 1px solid var(--line); background: var(--chip); font-size: 12.5px;
+    }
+    .tiles .tile img, .tiles .tile svg { width: 32px; height: 32px; }
+    .tiles input:checked + .tile { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; }
+    .tiles input:focus-visible + .tile { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+    /* Colour */
+    .colors { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    [data-swatches] { display: flex; gap: 8px; }
+    [data-swatches] button { width: 30px; height: 30px; border-radius: 50%; border: 1px solid #0002; cursor: pointer; padding: 0; }
+    [data-swatches] button[aria-pressed=true] { outline: 2px solid var(--accent); outline-offset: 2px; }
+    input[type=color] { width: 30px; height: 30px; padding: 0; border: 1px solid var(--line); border-radius: 50%; background: none; cursor: pointer; }
+    input[type=color]::-webkit-color-swatch-wrapper { padding: 0; }
+    input[type=color]::-webkit-color-swatch { border: 0; border-radius: 50%; }
+    .colors .custom { color: var(--muted); font-size: 12.5px; display: flex; align-items: center; gap: 6px; }
+
+    select { font: inherit; color: var(--fg); background: var(--chip); border: 1px solid var(--line); border-radius: 8px; padding: 5px 8px; }
+    input[type=range] { width: 130px; accent-color: var(--accent); }
+    output { font-variant-numeric: tabular-nums; color: var(--muted); font-size: 12.5px; min-width: 62px; white-space: nowrap; text-align: right; display: inline-block; }
+    .slider { display: flex; align-items: center; gap: 6px; }
+
+    footer { text-align: center; }
+    footer button { font: inherit; background: none; border: 0; color: var(--accent); cursor: pointer; padding: 6px; }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>Focus Reader</h1>
+      <p>Changes show up on the page as you make them.</p>
+    </header>
+
+    <div class="actions">
+      <button type="button" class="primary" data-run="flow">◎ Focus this page</button>
+      <button type="button" data-run="reader">▤ Reader view</button>
+    </div>
+    <p class="tip">Tip: double-click any text to get the focus toolbar right there.</p>
+
+    <form id="f">
+      <section aria-labelledby="h-hover">
+        <h2 id="h-hover">Reading finger</h2>
+        <label class="row"><span>Highlight the paragraph under the mouse</span><input type="checkbox" name="hoverHighlight" /></label>
+        <div class="group" role="radiogroup" aria-label="Cursor">
+          <span>Cursor</span>
+          <div class="tiles">
+            <label><input type="radio" name="hoverCursor" value="hand" /><span class="tile"><img data-cursor="hand" alt="" />Hand</span></label>
+            <label><input type="radio" name="hoverCursor" value="sleeve" /><span class="tile"><img data-cursor="sleeve" alt="" />Sleeve</span></label>
+            <label><input type="radio" name="hoverCursor" value="finger" /><span class="tile"><img data-cursor="finger" alt="" />Finger</span></label>
+            <label><input type="radio" name="hoverCursor" value="normal" /><span class="tile">
+              <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M9 5v20l5-5 3.5 7.5 3-1.4L17 18.6h7z" fill="currentColor" stroke="var(--card)" stroke-width="1.5" stroke-linejoin="round"/></svg>Normal</span></label>
+          </div>
+        </div>
+        <div class="group">
+          <span>Background</span>
+          <div class="colors">
+            <div data-swatches aria-label="Preset colours"></div>
+            <label class="custom"><input type="color" name="hoverColor" aria-label="Custom colour" />Custom</label>
+          </div>
+        </div>
+      </section>
+
+      <section aria-labelledby="h-reading" style="margin-top:14px">
+        <h2 id="h-reading">Reading</h2>
+        <label class="row"><span>Font</span>
+          <select name="font"><option value="lexend">Lexend</option><option value="atkinson">Atkinson Hyperlegible</option><option value="serif">Serif</option><option value="original">Page font</option></select></label>
+        <label class="row"><span>Reader theme</span>
+          <select name="theme"><option value="paper">Paper</option><option value="sepia">Sepia</option><option value="mint">Mint</option><option value="slate">Slate</option><option value="night">Night</option></select></label>
+        <label class="row"><span>Text size</span>
+          <span class="slider"><input type="range" name="fontSize" min="14" max="40" step="1" /><output data-for="fontSize" data-unit="px"></output></span></label>
+        <label class="row"><span>Bionic text<small>Bold the start of each word.</small></span><input type="checkbox" name="bionic" /></label>
+        <label class="row"><span>Spotlight<small>Dim everything but the current paragraph.</small></span><input type="checkbox" name="spotlight" /></label>
+        <label class="row"><span>Pace speed</span>
+          <span class="slider"><input type="range" name="pace" min="1" max="100" step="1" /><output data-for="pace" data-unit="wpm"></output></span></label>
+      </section>
+    </form>
+
+    <footer><button type="button" id="all">All settings →</button></footer>
+  </main>
+  <script type="module" src="./main.ts"></script>
+</body>
+</html>

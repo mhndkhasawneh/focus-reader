@@ -3,7 +3,7 @@ import { SelectionToolbar, type ToolbarAction } from '@/lib/flow/toolbar';
 import { toast, toggleReaderView } from '@/lib/reader';
 import { loadSettings, onSettingsChanged, saveSettings, type Settings } from '@/lib/settings';
 
-export type FlowIntent = 'arm' | 'toggle' | 'start';
+export type FlowIntent = 'arm' | 'show' | 'toggle' | 'start';
 
 class FlowController {
   private toolbar = new SelectionToolbar((action, range) => void this.onToolbar(action, range));
@@ -23,6 +23,7 @@ class FlowController {
   async run(intent: FlowIntent): Promise<void> {
     this.arm();
     if (intent === 'arm') return;
+    if (intent === 'show') return this.toolbar.showForSelection();
     if (intent === 'toggle' && this.session?.active) return this.session.stop();
     const sel = window.getSelection();
     if (sel && !sel.isCollapsed && sel.rangeCount) return this.begin(sel.getRangeAt(0), false);

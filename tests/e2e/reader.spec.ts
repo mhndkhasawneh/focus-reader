@@ -60,6 +60,7 @@ test('flow mode: select text, focus in place, step, pace, bionic, and restore th
   const page = await context.newPage();
   await page.goto(url);
   await worker.evaluate(() => chrome.storage.sync.clear());
+  await page.mouse.move(0, 0); // park the mouse outside the article so the hover highlight doesn't mark it
   const original = await page.locator('article').innerHTML();
   await runFlow(page, 'arm');
 
@@ -113,6 +114,7 @@ test('flow mode: select text, focus in place, step, pace, bionic, and restore th
 
   // Exit: veil, highlights and bionic wrappers are gone and the article markup is byte-identical.
   await page.keyboard.press('Escape');
+  await page.mouse.move(0, 0); // the hover highlight comes back on exit; keep it off the article for the comparison
   await expect(veil).toHaveCount(0);
   expect(await page.evaluate(() => CSS.highlights.size)).toBe(0);
   expect(await page.locator('article').innerHTML()).toBe(original);
@@ -198,4 +200,108 @@ test('explains itself on pages without an article', async () => {
   await toggleReader(page);
   await expect(page.getByText('could not find an article')).toBeVisible();
   await expect(page.locator('focus-reader-root')).toHaveCount(0);
+});
+
+test('hover highlight: tints the paragraph under the mouse, steps aside for reader view, leaves the page intact', async () => {
+  const page = await context.newPage();
+  await page.goto(url);
+  await worker.evaluate(() => chrome.storage.sync.clear());
+  await page.mouse.move(0, 0);
+  const original = await page.locator('article').innerHTML();
+  const lit = () => page.evaluate(() => document.querySelector('[data-focus-reader-hover]')?.textContent?.slice(0, 20) ?? null);
+  const p = page.locator('article p');
+
+  // On by default: hovering a paragraph (even over a word) gives that whole paragraph a background.
+  await p.nth(2).hover({ position: { x: 30, y: 8 } });
+  await expect.poll(lit).toBe('Reading tools try to');
+  const bg = await p.nth(2).evaluate((el) => getComputedStyle(el).backgroundColor);
+  expect(bg).not.toBe('rgba(0, 0, 0, 0)');
+  expect(await p.nth(2).evaluate((el) => getComputedStyle(el).cursor)).toMatch(/^url\("data:image\/svg\+xml/);
+  await page.screenshot({ path: 'test-results/hover.png' });
+  await p.nth(4).hover({ position: { x: 30, y: 8 } });
+  await expect.poll(lit).toBe('A spotlight dims eve');
+  const gap = (await p.nth(4).boundingBox())!; // the margin above a paragraph belongs to <article>: no paragraph
+  await page.mouse.move(gap.x + 30, gap.y - 6);
+  await expect.poll(lit).toBeNull();
+
+  // The colour follows the setting.
+  await worker.evaluate(() => chrome.storage.sync.set({ settings: { hoverColor: '#0000ff' } }));
+  await p.nth(2).hover({ position: { x: 30, y: 8 } });
+  await expect.poll(() => p.nth(2).evaluate((el) => getComputedStyle(el).backgroundColor)).toMatch(/srgb 0 0 1 /);
+
+  // Reader view: the highlight clears and stays off while it's open, then comes back.
+  await toggleReader(page);
+  await expect(page.locator('focus-reader-root .fr')).toBeVisible();
+  await expect.poll(lit).toBeNull();
+  await page.mouse.move(400, 300);
+  await page.mouse.move(420, 320);
+  await expect.poll(lit).toBeNull();
+  await page.keyboard.press('Escape');
+  await p.nth(3).hover({ position: { x: 30, y: 8 } });
+  await expect.poll(lit).toBe('Others go further. B');
+
+  // Turned off in Options: nothing lights up.
+  await worker.evaluate(() => chrome.storage.sync.set({ settings: { hoverHighlight: false } }));
+  await expect.poll(lit).toBeNull();
+  await p.nth(5).hover({ position: { x: 30, y: 8 } });
+  await page.waitForTimeout(200);
+  expect(await lit()).toBeNull();
+
+  expect(await page.locator('article').innerHTML()).toBe(original);
+  await worker.evaluate(() => chrome.storage.sync.clear());
+  await page.close();
+});
+
+test('double-click on text shows the focus toolbar without clicking the icon first', async () => {
+  const page = await context.newPage();
+  await page.goto(url);
+  await worker.evaluate(() => chrome.storage.sync.clear());
+  await page.locator('article p').nth(3).dblclick({ position: { x: 30, y: 8 } });
+  const toolbar = page.locator('focus-reader-ui .tb');
+  await expect(toolbar).toBeVisible();
+  await toolbar.getByRole('button', { name: /Focus/ }).click();
+  await expect.poll(() => highlightText(page, 'fr-sentence')).toBe('Others go further.');
+  await page.keyboard.press('Escape');
+  await page.close();
+});
+
+test('side panel: cursor and colour choices apply live to the page', async () => {
+  const extId = new URL(worker.url()).host;
+  const page = await context.newPage();
+  await page.goto(url);
+  await worker.evaluate(() => chrome.storage.sync.clear());
+  const panel = await context.newPage();
+  await panel.setViewportSize({ width: 360, height: 900 });
+  await panel.goto(`chrome-extension://${extId}/sidepanel.html`);
+
+  // Defaults: on, hand cursor, yellow swatch selected; cursor previews are drawn.
+  await expect(panel.locator('input[name=hoverHighlight]')).toBeChecked();
+  await expect(panel.locator('input[name=hoverCursor][value=hand]')).toBeChecked();
+  await expect(panel.locator('[data-swatches] button[aria-pressed=true]')).toHaveAttribute('title', 'Yellow');
+  for (const kind of ['hand', 'sleeve', 'finger'])
+    await expect(panel.locator(`img[data-cursor=${kind}]`)).toHaveAttribute('src', /^data:image\/svg\+xml/);
+  await panel.screenshot({ path: 'test-results/sidepanel.png', fullPage: true, animations: 'disabled' });
+
+  // Pick Blue and the Finger cursor.
+  await panel.getByRole('button', { name: 'Blue highlight' }).click();
+  await panel.getByText('Finger', { exact: true }).click();
+  await expect(panel.locator('[data-swatches] button[aria-pressed=true]')).toHaveAttribute('title', 'Blue');
+
+  const p = page.locator('article p').nth(2);
+  await page.bringToFront();
+  await p.hover({ position: { x: 30, y: 8 } });
+  await expect.poll(() => p.evaluate((el) => getComputedStyle(el).backgroundColor)).toContain('srgb 0.42');
+  const cursor = await p.evaluate((el) => getComputedStyle(el).cursor);
+  expect(decodeURIComponent(cursor)).toContain("viewBox='0 0 28 32'"); // the finger drawing
+  expect(cursor).toMatch(/11 1, pointer$/);
+
+  // Sleeve: the skin-tone hand, fingertip hotspot.
+  await panel.getByText('Sleeve', { exact: true }).click();
+  await expect.poll(() => p.evaluate((el) => getComputedStyle(el).cursor)).toMatch(/5 5, pointer$/);
+
+  // Normal cursor: no custom cursor, highlight stays.
+  await panel.getByText('Normal', { exact: true }).click();
+  await expect.poll(() => p.evaluate((el) => getComputedStyle(el).cursor)).toBe('auto'); // the page's own cursor
+  await panel.close();
+  await page.close();
 });

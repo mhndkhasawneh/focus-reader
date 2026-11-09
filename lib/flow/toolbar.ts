@@ -44,6 +44,11 @@ export class SelectionToolbar {
     this.hide();
   }
 
+  /** Show the toolbar for the current selection right away (used for double-click on pages that weren't armed). */
+  showForSelection(): void {
+    this.check();
+  }
+
   hide(): void {
     this.host.remove();
     this.range = null;

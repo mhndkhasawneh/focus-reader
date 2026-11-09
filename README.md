@@ -17,7 +17,8 @@ one sentence at a time, or open a clean reader view. Bionic text and auto-pacing
 
 Long articles compete with sidebars, ads and autoplay for your attention. Reading tools for ADHD and focus
 usually solve this with an account, a subscription and permission to read every site you visit. Focus Reader
-does the same job locally: **no account, no server, no tracking**, and by default it only touches a page when you ask it to.
+does the same job locally: **no account, no server, no tracking**. The only thing it does on every page by default is
+the hover highlight, which reads nothing but where your mouse is.
 
 ## The story behind it
 
@@ -35,10 +36,21 @@ More in [my LinkedIn post](https://www.linkedin.com/feed/update/urn:li:activity:
 ## Features
 
 ### Two ways to read
-- **In-page focus** (`Alt+Shift+F`). Select any text and a toolbar appears. Hit **Focus** and the page around the
+- **In-page focus** (`Alt+Shift+F`, or click the toolbar icon). Double-click any text and a toolbar appears. Hit **Focus** and the page around the
   current paragraph dims while the current sentence is highlighted, so you stay in the original page with its
   images, links and layout. Step with `↓` / `↑`, or click anywhere in the text to jump there.
 - **Reader view** (`Alt+Shift+R`). Opens a clean, distraction-free copy of the article with adjustable typography and themes.
+
+### Settings sidebar
+- Clicking the toolbar icon starts in-page focus and opens a sidebar next to the page. Change the reading finger,
+  fonts, bionic text, spotlight and pace there and watch the page update as you go.
+
+### Reading finger (on by default, every page)
+- Like following the line with your finger: a soft background sits behind the paragraph under your mouse and
+  follows it, and the cursor becomes a pointing hand. Pick the cursor (hand, sleeve, finger or normal) and the colour
+  (yellow, blue, green, pink or any custom colour) in the sidebar.
+- It needs nothing from the page beyond the element under the pointer, so it also works as a fallback on pages
+  where in-page focus can't find the article. It steps aside while in-page focus or reader view is open.
 
 ### Focus aids (both modes)
 - **Auto-pacing.** A highlight moves through the text at your chosen speed (about 100 to 1000 wpm) and fades
@@ -53,10 +65,11 @@ More in [my LinkedIn post](https://www.linkedin.com/feed/update/urn:li:activity:
 
 | Permission | Why |
 |---|---|
-| `activeTab` + `scripting` | Runs only in the tab where you click the icon, press a shortcut or use the context menu |
+| Site access on `http(s)://*/*` | Chrome shows this as "read and change your data on all websites". A small script on every page runs the reading finger (it only tracks which paragraph the mouse is over and marks it with one attribute) and listens for double-clicks. In-page focus and reader view are injected only when you double-click, click the icon, press a shortcut or use the sidebar |
+| `activeTab` + `scripting` | Injecting in-page focus and reader view into the tab you're using |
+| `sidePanel` | The settings sidebar |
 | `storage` | Saves your reading preferences (Chrome sync storage) |
 | `contextMenus` | The "Focus from here" right-click item |
-| *optional* `<all_urls>` | Requested **only** if you turn on "show the toolbar whenever I select text" in Options |
 
 The extension makes no network requests.
 
@@ -88,6 +101,9 @@ npm run build
 
 ## How it works
 
+- **Hover highlight.** `lib/hover.ts` walks up from the element under the mouse past inline elements to the first
+  block that holds text itself, skipping containers and anything taller than the viewport. It marks that block with
+  a `data-focus-reader-hover` attribute styled from one `<style>` element, so text and layout never change.
 - **No page edits for highlighting.** In-page focus paints sentences and words with the
   [CSS Custom Highlight API](https://developer.mozilla.org/docs/Web/API/CSS_Custom_Highlight_API). Dimming is a
   single fixed element whose giant `box-shadow` leaves a cut-out over the current paragraph. The page's DOM stays
@@ -104,14 +120,18 @@ npm run build
 
 ```
 entrypoints/
-  background.ts         icon, shortcuts, context menu, opt-in content-script registration
+  background.ts         icon, sidebar, shortcuts, context menu, double-click and opt-in toolbar
   flow.content.ts       in-page focus controller (selection toolbar + session)
   reader.content.ts     reader view toggle
+  hover.content.ts      reading finger + double-click toolbar (the only always-on script)
+  sidepanel/            settings sidebar
   options/              settings page
 lib/
   flow/                 segment.ts · model.ts · session.ts · toolbar.ts
   overlay.ts            reader view UI
   extract.ts            Readability + sanitizer
+  hover.ts              reading finger: paragraph finder, highlight, cursors
+  settings-form.ts      form <-> settings binding shared by the sidebar and Options
   pacer.ts · bionic.ts · settings.ts · fonts.ts
 tests/                  unit tests (Vitest) and e2e/ (Playwright, real extension in Chromium)
 ```

@@ -1,10 +1,11 @@
 export type ThemeId = 'paper' | 'sepia' | 'mint' | 'slate' | 'night';
 export type FontId = 'original' | 'lexend' | 'atkinson' | 'serif';
 export type Mode = 'reader' | 'flow';
+export type HoverCursor = 'normal' | 'finger' | 'hand' | 'sleeve';
 
 export interface Settings {
   defaultMode: Mode; // what the toolbar icon does
-  selectionToolbar: boolean; // show the focus toolbar on text selection on every site (needs host permission)
+  selectionToolbar: boolean; // show the focus toolbar on every text selection, not only on double-click
   flowUnit: 'sentence' | 'paragraph'; // what flow mode steps through
   theme: ThemeId;
   font: FontId;
@@ -18,6 +19,9 @@ export interface Settings {
   spotlightDim: number; // opacity of the other paragraphs, 0-1
   pace: number; // 1-100, mapped to characters per second
   pauseAtPunctuation: boolean;
+  hoverHighlight: boolean; // tint the paragraph under the mouse on every page
+  hoverColor: string; // #rrggbb, drawn translucent
+  hoverCursor: HoverCursor;
 }
 
 export const DEFAULTS: Settings = {
@@ -36,6 +40,16 @@ export const DEFAULTS: Settings = {
   spotlightDim: 0.25,
   pace: 35,
   pauseAtPunctuation: true,
+  hoverHighlight: true,
+  hoverColor: '#ffd84d',
+  hoverCursor: 'hand',
+};
+
+export const HOVER_PRESETS: Record<string, string> = {
+  Yellow: '#ffd84d',
+  Blue: '#6cb6ff',
+  Green: '#5fd38d',
+  Pink: '#ff8fc7',
 };
 
 export const THEMES: Record<ThemeId, { bg: string; fg: string; accent: string; mark: string }> = {
